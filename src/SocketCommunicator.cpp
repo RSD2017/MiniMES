@@ -19,7 +19,7 @@ bool SocketCommunicator::startServer(const std::string& ip, int port)
 	_serverip = ip;
 	_serverport = port;
 	_stopServer = false;
-	
+
 	_thread = new boost::thread(boost::bind(&SocketCommunicator::runServer, this));
 	return true;
 }
@@ -39,8 +39,12 @@ namespace {
 			bool read = getChar(socket, &(buffer[cnt]));
 			if (!read) {
 				cnt--;
+			} else {
+				std::cout << buffer[cnt];
 			}
 		}
+		std::cout << std::endl;
+		std::cout << "cnt: " << cnt << std::endl;
 		buffer[cnt] = 0;
 		return std::string(buffer);
 	}
@@ -48,17 +52,22 @@ namespace {
 	uint16_t getUInt16(boost::asio::ip::tcp::socket* socket) {
 		uint16_t output = 0;
 		getChar(socket, (char*)&output + 1);
-		getChar(socket, (char*)&output + 0);		
+		getChar(socket, (char*)&output + 0);
 		return output;
 	}
 
 	//Extract a 32 bit unsigned int
 	uint32_t getUInt32(boost::asio::ip::tcp::socket* socket) {
 		uint32_t output = 0;
-		getChar(socket, (char*)&output + 3);
-		getChar(socket, (char*)&output + 2);
-		getChar(socket, (char*)&output + 1);
-		getChar(socket, (char*)&output + 0);
+		char* a;
+		getChar(socket, a );
+		output += ((*a)-48)*1000;
+		getChar(socket, a );
+		output += ((*a)-48)*100;
+		getChar(socket, a );
+		output += ((*a)-48)*10;
+		getChar(socket, a );
+		output += (*a)-48;
 		return output;
 	}
 
@@ -67,16 +76,17 @@ namespace {
 		socket->send(boost::asio::buffer(str.c_str(), str.size()+1));
 	}
 
-	void sendBinaryInt32(boost::asio::ip::tcp::socket* socket, int val) 
+	void sendBinaryInt32(boost::asio::ip::tcp::socket* socket, int val)
 	{
 		char buffer[4];
-		buffer[0] = ((char*)(&val))[3];
-		buffer[1] = ((char*)(&val))[2];
-		buffer[2] = ((char*)(&val))[1];
-		buffer[3] = ((char*)(&val))[0];
+		buffer[3] = ((char*)(&val))[3];
+		buffer[2] = ((char*)(&val))[2];
+		buffer[1] = ((char*)(&val))[1];
+		buffer[0] = ((char*)(&val))[0];
 		socket->send(boost::asio::buffer(buffer, 4));
+		boost::this_thread::sleep(boost::posix_time::milliseconds(20));
 	}
-	
+
 
 	void send(boost::asio::ip::tcp::socket* socket, int val) {
 		std::stringstream sstr;
@@ -107,6 +117,7 @@ void SocketCommunicator::runCommunication(tcp::socket* socket)
 		}
 		else {
 			std::string message = readUntil(socket, '\n');
+			std::cout << "Debug message: " << message << std::endl;
 			std::istringstream input(message);
 			std::string cmd;
 			input >> cmd;
@@ -120,7 +131,9 @@ void SocketCommunicator::runCommunication(tcp::socket* socket)
 				if (type == "ORDER") {
 					std::pair<int, std::vector<int> > task = _orderManager->getNextOrder(unitId);
 					sendBinaryInt32(socket, task.first);
+			                boost::this_thread::sleep(boost::posix_time::milliseconds(20));
 					sendBinaryInt32(socket, task.second.size());
+			                boost::this_thread::sleep(boost::posix_time::milliseconds(20));
 					for (int i : task.second) {
 						sendBinaryInt32(socket, i);
 					}
@@ -135,7 +148,9 @@ void SocketCommunicator::runCommunication(tcp::socket* socket)
 				input >> type;
 				int id = getUInt32(socket);
 				std::string msg = readUntil(socket, '\n');
+				std::cout << "msg: " << msg << std::endl;
 				if (type == "ORDERSTATUS") {
+					std::cout << "Order id: " << id << std::endl;
 					_orderManager->postOrderStatus(id, msg);
 				}
 				else if (type == "PARTSTATUS") {
@@ -169,5 +184,3 @@ void SocketCommunicator::runServer() {
 	}
 
 }
-
-

@@ -4,40 +4,36 @@
 #include <fstream>
 #include <string>
 
-OrderManager::OrderManager()
-{
-
+OrderManager::OrderManager(){
 }
 
-std::list<Order::Ptr>& OrderManager::getOrders()
-{
+std::list<Order::Ptr>& OrderManager::getOrders(){
 	return _openOrders;
 }
 
-void OrderManager::addOrder(Order::Ptr order)
-{
+void OrderManager::addOrder(Order::Ptr order){
 	boost::mutex::scoped_lock lock(_mutex);
 	_openOrders.push_back(order);
 }
 
-std::pair < int, std::vector<int> > OrderManager::getNextOrder(const std::string& unitId)
-{
+std::pair < int, std::vector<int> > OrderManager::getNextOrder(const std::string& unitId){
 	boost::mutex::scoped_lock lock(_mutex);
+	std::cout << "Scoped locked mutex getNextOrder()" << std::endl;
 	if (_openOrders.size() > 0) {
 		Order::Ptr order = _openOrders.front();
-		if (order->isOrderFinished())
-		{
-			_closedOrders[order->getId()] = order;			
-			_openOrders.pop_front();			
-		}
+//		if (order->isOrderFinished())
+//		{
+			_closedOrders[order->getId()] = order;
+			_openOrders.pop_front();
+//		}
+		std::cout << "Returning order" << std::endl;
 		return std::make_pair(order->getId(), order->getTasks(unitId));
 	}
+	std::cout << "Openorder empty.." << std::endl;
 	return std::make_pair(-1, std::vector<int>());
 }
 
-
-void OrderManager::postOrderStatus(int id, const std::string& status)
-{
+void OrderManager::postOrderStatus(int id, const std::string& status){
 	if (_closedOrders.find(id) != _closedOrders.end()) {
 		_closedOrders[id]->postStatus(status);
 	}
@@ -50,14 +46,13 @@ void OrderManager::postOrderStatus(int id, const std::string& status)
 	}
 }
 
-void OrderManager::save(const std::string& filename)
-{
+void OrderManager::save(const std::string& filename){
 	std::ofstream outfile(filename);
 	if (outfile.is_open() == false) {
 		std::cerr << "Unable to open file: " << filename << std::endl;
 		return;
 	}
-	
+
 	for (std::map<int, Order::Ptr>::iterator it = _closedOrders.begin(); it != _closedOrders.end(); ++it) {
 		outfile << *(*it).second << std::endl;
 	}
@@ -69,9 +64,7 @@ void OrderManager::save(const std::string& filename)
 	outfile.close();
 }
 
-
-void OrderManager::load(const std::string& filename)
-{
+void OrderManager::load(const std::string& filename){
 	_openOrders.clear();
 	_closedOrders.clear();
 	std::ifstream infile(filename);
@@ -93,5 +86,5 @@ void OrderManager::load(const std::string& filename)
 		}
 	}
 	infile.close();
-
+	std::cout << "open queue size: " << _openOrders.size() << std::endl;
 }
