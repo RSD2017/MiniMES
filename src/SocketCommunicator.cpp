@@ -1,10 +1,14 @@
 #include "SocketCommunicator.hpp"
 
 #include <iostream>
+#include <map>
 #include <string>
-
+#include <sstream> 
+#include <algorithm>
 using namespace boost::asio::ip;
 
+std::ostringstream stdout_logger;
+std::map<int,int> partsList;
 SocketCommunicator::SocketCommunicator(OrderManager* orderManager, PartManager* partManager):
 	_isRunning(false),
 	_orderManager(orderManager),
@@ -13,7 +17,21 @@ SocketCommunicator::SocketCommunicator(OrderManager* orderManager, PartManager* 
 
 }
 
-
+std::vector<int> split(const std::string& s, char delimiter)
+{
+	std::vector<int> tokens;
+	std::string token;
+	std::istringstream tokenStream(s);
+	while (std::getline(tokenStream, token, delimiter)){
+		if(token != " " && token != ""){
+                        std::istringstream buffer(token);
+                        int value;
+			buffer >> value;
+			tokens.push_back(value);
+		}
+	}
+	return tokens;
+}
 bool SocketCommunicator::startServer(const std::string& ip, int port)
 {
 	_serverip = ip;
@@ -39,12 +57,12 @@ namespace {
 			bool read = getChar(socket, &(buffer[cnt]));
 			if (!read) {
 				cnt--;
-			} else {
-				std::cout << buffer[cnt];
+//			} else {
+//				std::cerr << buffer[cnt];
 			}
 		}
-		std::cout << std::endl;
-		std::cout << "cnt: " << cnt << std::endl;
+//		std::cerr << std::endl;
+//		std::cerr << "cnt: " << cnt << std::endl;
 		buffer[cnt] = 0;
 		return std::string(buffer);
 	}
@@ -110,14 +128,14 @@ void SocketCommunicator::runCommunication(tcp::socket* socket)
 		size_t available = socket->available(error);
 		if (available == 0) {
 			if (error == boost::asio::error::eof) {
-				std::cout << "Reached EOF" << std::endl;
+				std::cerr << "Reached EOF" << std::endl;
 
 				break;
 			}
 		}
 		else {
 			std::string message = readUntil(socket, '\n');
-			std::cout << "Debug message: " << message << std::endl;
+//			std::cerr << "Debug message: " << message << std::endl;
 			std::istringstream input(message);
 			std::string cmd;
 			input >> cmd;
@@ -129,6 +147,7 @@ void SocketCommunicator::runCommunication(tcp::socket* socket)
 				input >> unitId;
 
 				if (type == "ORDER") {
+					std::cerr << "Get order id: " << std::endl;
 					std::pair<int, std::vector<int> > task = _orderManager->getNextOrder(unitId);
 					sendBinaryInt32(socket, task.first);
 			                boost::this_thread::sleep(boost::posix_time::milliseconds(20));
@@ -137,9 +156,12 @@ void SocketCommunicator::runCommunication(tcp::socket* socket)
 					for (int i : task.second) {
 						sendBinaryInt32(socket, i);
 					}
+					stdout_logger << task.first;
 				}
 				else if (type == "PART") {
+					std::cerr << "Get part" << std::endl;
 					int id = _partManager->getNextPart(unitId);
+//					stdout_logger << ":"  << id << ",";
 					sendBinaryInt32(socket, id);
 				}
 			}
@@ -148,17 +170,36 @@ void SocketCommunicator::runCommunication(tcp::socket* socket)
 				input >> type;
 				int id = getUInt32(socket);
 				std::string msg = readUntil(socket, '\n');
-				std::cout << "msg: " << msg << std::endl;
 				if (type == "ORDERSTATUS") {
-					std::cout << "Order id: " << id << std::endl;
+					std::cerr << "Post order id: " << id << std::endl;
 					_orderManager->postOrderStatus(id, msg);
+					auto partids = split(msg,' ');
+					std::cout << stdout_logger.str();
+					for(auto id : partids){
+						std::cout << ":" << id << "," << partsList[id];
+					}
+					partsList.clear();
+//					std::cerr << "Map cleared..." << std::endl;
+					std::cout << std::flush;
+//std::string str = stdout_logger.str();
+//str.erase(remove(str.begin(), str.end(), ' '), str.end());
+//stdout_logger.str("");
+//stdout_logger.clear();
+//std::cout << str << std::endl;
 				}
 				else if (type == "PARTSTATUS") {
+					std::cerr << "Post part id: " << id << std::endl;
+					std::istringstream buffer(msg);
+					int value;
+					buffer >> value;   
+
+					partsList[id] = value;
 					_partManager->postPartStatus(id, msg);
+					//stdout_logger << msg;
 				}
 			}
 		}
-		boost::this_thread::sleep(boost::posix_time::milliseconds(100));
+//		boost::this_thread::sleep(boost::posix_time::milliseconds(100));
 	}
 
 }

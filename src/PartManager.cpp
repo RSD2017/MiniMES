@@ -12,7 +12,7 @@ PartManager::PartManager()
 
 int PartManager::getNextPart(const std::string& unitId)
 {
-	int id = _parts.size();
+	int id = _parts.size()+1;
 	_parts[id] = Part(id);
 	return id;
 }

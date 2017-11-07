@@ -11,8 +11,8 @@ PartManager partManager;
 
 
 void saveOrders() {
-	std::cout << ">>>>>>>>>> SAVE ORDERS <<<<<<<<<<" << std::endl;
-	std::cout << "Enter filename: ";
+	std::cerr << ">>>>>>>>>> SAVE ORDERS <<<<<<<<<<" << std::endl;
+	std::cerr << "Enter filename: ";
 	std::string filename;
 	std::cin >> filename;
 
@@ -20,8 +20,8 @@ void saveOrders() {
 }
 
 void loadOrders() {
-	std::cout << ">>>>>>>>>> LOAD ORDERS <<<<<<<<<<" << std::endl;
-	std::cout << "Enter filename: ";
+	std::cerr << ">>>>>>>>>> LOAD ORDERS <<<<<<<<<<" << std::endl;
+	std::cerr << "Enter filename: ";
 	std::string filename;
 	std::cin >> filename;
 	try {
@@ -34,18 +34,18 @@ void loadOrders() {
 }
 
 void addOrder() {
-	std::cout << ">>>>>>>>>> ADD ORDER <<<<<<<<<<" << std::endl;
-	std::cout << "Add Task for Order: " << std::endl;
+	std::cerr << ">>>>>>>>>> ADD ORDER <<<<<<<<<<" << std::endl;
+	std::cerr << "Add Task for Order: " << std::endl;
 	Order::Ptr order = Order::Ptr(new Order());
 
 	while (true) {
-		std::cout << "\tUnit Id (enter 'finished' for finishing order): ";
+		std::cerr << "\tUnit Id (enter 'finished' for finishing order): ";
 		std::string unitId;
 		std::cin >> unitId;
 		if (unitId == "finished")
 			break;
 		while (true) {
-			std::cout << "\tAdd Task (integer. Enter -1 for finishing task.): ";
+			std::cerr << "\tAdd Task (integer. Enter -1 for finishing task.): ";
 			int task;
 			std::cin >> task;
 			if (task != -1) {
@@ -63,14 +63,14 @@ void addOrder() {
 
 void printOrders() 
 {
-	std::cout << ">>>>>>>>>> PRINT ORDERS <<<<<<<<<<" << std::endl;
-	std::cout << orderManager << std::endl;	
+	std::cerr << ">>>>>>>>>> PRINT ORDERS <<<<<<<<<<" << std::endl;
+	std::cerr << orderManager << std::endl;	
 }
 
 void loadParts() 
 {
-	std::cout << ">>>>>>>>>> LOAD PARTS <<<<<<<<<<" << std::endl;
-	std::cout << "Enter filename: ";
+	std::cerr << ">>>>>>>>>> LOAD PARTS <<<<<<<<<<" << std::endl;
+	std::cerr << "Enter filename: ";
 	std::string filename;
 	std::cin >> filename;
 	try {
@@ -84,8 +84,8 @@ void loadParts()
 
 void saveParts()
 {
-	std::cout << ">>>>>>>>>> SAVE PARTS <<<<<<<<<<" << std::endl;
-	std::cout << "Enter filename: ";
+	std::cerr << ">>>>>>>>>> SAVE PARTS <<<<<<<<<<" << std::endl;
+	std::cerr << "Enter filename: ";
 	std::string filename;
 	std::cin >> filename;
 	try {
@@ -100,25 +100,25 @@ void saveParts()
 
 void printParts()
 {
-	std::cout << ">>>>>>>>>> PRINT PARTS <<<<<<<<<<" << std::endl;
-	std::cout << partManager << std::endl;
+	std::cerr << ">>>>>>>>>> PRINT PARTS <<<<<<<<<<" << std::endl;
+	std::cerr << partManager << std::endl;
 }
 
 void mainMenu() {
 	
 	bool quit = false;
 	while (!quit) {
-		std::cout << std::endl << std::endl;
-		std::cout << ">>>>>>>>>> MENU <<<<<<<<<<" << std::endl;
-		std::cout << "1: Add order" << std::endl;
-		std::cout << "2: Print Order Status" << std::endl;
-		std::cout << "3: Print Part Status" << std::endl;
-		std::cout << "4: Load orders from file " << std::endl;
-		std::cout << "5: Save orders to file " << std::endl;
-		std::cout << "6: Load Parts from file " << std::endl;
-		std::cout << "7: Save Parts to file " << std::endl;
-		std::cout << "0: quit" << std::endl;
-		std::cout << "Enter command: ";
+		std::cerr << std::endl << std::endl;
+		std::cerr << ">>>>>>>>>> MENU <<<<<<<<<<" << std::endl;
+		std::cerr << "1: Add order" << std::endl;
+		std::cerr << "2: Print Order Status" << std::endl;
+		std::cerr << "3: Print Part Status" << std::endl;
+		std::cerr << "4: Load orders from file " << std::endl;
+		std::cerr << "5: Save orders to file " << std::endl;
+		std::cerr << "6: Load Parts from file " << std::endl;
+		std::cerr << "7: Save Parts to file " << std::endl;
+		std::cerr << "0: quit" << std::endl;
+		std::cerr << "Enter command: ";
 		int cmd;
 		std::cin >> cmd;
 		switch (cmd) {

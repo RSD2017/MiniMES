@@ -18,7 +18,7 @@ void OrderManager::addOrder(Order::Ptr order){
 
 std::pair < int, std::vector<int> > OrderManager::getNextOrder(const std::string& unitId){
 	boost::mutex::scoped_lock lock(_mutex);
-	std::cout << "Scoped locked mutex getNextOrder()" << std::endl;
+	//std::cout << "Scoped locked mutex getNextOrder()" << std::endl;
 	if (_openOrders.size() > 0) {
 		Order::Ptr order = _openOrders.front();
 //		if (order->isOrderFinished())
@@ -26,7 +26,7 @@ std::pair < int, std::vector<int> > OrderManager::getNextOrder(const std::string
 			_closedOrders[order->getId()] = order;
 			_openOrders.pop_front();
 //		}
-		std::cout << "Returning order" << std::endl;
+		//std::cout << "Returning order" << std::endl;
 		return std::make_pair(order->getId(), order->getTasks(unitId));
 	}
 	std::cout << "Openorder empty.." << std::endl;
@@ -86,5 +86,5 @@ void OrderManager::load(const std::string& filename){
 		}
 	}
 	infile.close();
-	std::cout << "open queue size: " << _openOrders.size() << std::endl;
+	//std::cout << "open queue size: " << _openOrders.size() << std::endl;
 }
