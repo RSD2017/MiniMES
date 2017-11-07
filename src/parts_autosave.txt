@@ -1,5 +1,9 @@
 Part 1
 	Status   0
 Part 2
+	Status	 0
+	Status	 0
 Part 3
+	Status	 1
+	Status	 2
 
