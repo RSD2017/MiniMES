@@ -180,7 +180,7 @@ void SocketCommunicator::runCommunication(tcp::socket* socket)
 					}
 					partsList.clear();
 //					std::cerr << "Map cleared..." << std::endl;
-					std::cout << std::flush;
+					std::cout << std::endl;
 //std::string str = stdout_logger.str();
 //str.erase(remove(str.begin(), str.end(), ' '), str.end());
 //stdout_logger.str("");
@@ -203,7 +203,19 @@ void SocketCommunicator::runCommunication(tcp::socket* socket)
 	}
 
 }
+class AutoSaver {
+        bool _stopServer = false;
+	public:
 
+	void SaveThread(PartManager* partManager, OrderManager* orderManager){
+		while(!_stopServer){
+//			std::cerr << "Saving.." << std::endl;
+			orderManager->save("orders_autosave.txt");
+			partManager->save("parts_autosave.txt");
+			boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
+		}
+	}
+};
 
 void SocketCommunicator::runServer() {
 	try {
@@ -215,6 +227,9 @@ void SocketCommunicator::runServer() {
 			tcp::socket* socket = new tcp::socket(io_service);
 			acceptor.accept(*socket);
 			boost::thread* thread = new boost::thread(boost::bind(&SocketCommunicator::runCommunication, this, socket));
+			_socketCommunications.push_back(thread);
+			AutoSaver autosaver;
+			thread = new boost::thread(boost::bind(&AutoSaver::SaveThread,&autosaver,_partManager,_orderManager));
 			_socketCommunications.push_back(thread);
 		}
 	}
