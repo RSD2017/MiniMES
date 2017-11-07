@@ -152,9 +152,11 @@ int main(int argumentCount, char** argumentArray) {
 
 
 	if (argumentCount > 2) {
-		std::string filename = argumentArray[2];
+		std::string filename_orders = argumentArray[2];
+		std::string filename_parts = argumentArray[3];
 		try {
-			orderManager.load(filename);
+			partManager.load(filename_parts);
+			orderManager.load(filename_orders);
 		}
 		catch (const std::exception& exp) {
 			std::cerr << "Exception: " << exp.what() << std::endl;
