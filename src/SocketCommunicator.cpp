@@ -8,7 +8,7 @@
 using namespace boost::asio::ip;
 
 std::ostringstream stdout_logger;
-std::map<int,int> partsList;
+//std::map<int,int> partsList;
 SocketCommunicator::SocketCommunicator(OrderManager* orderManager, PartManager* partManager):
 	_isRunning(false),
 	_orderManager(orderManager),
@@ -156,6 +156,7 @@ void SocketCommunicator::runCommunication(tcp::socket* socket)
 					for (int i : task.second) {
 						sendBinaryInt32(socket, i);
 					}
+					// Save order id, to output
 					stdout_logger << task.first;
 				}
 				else if (type == "PART") {
@@ -176,16 +177,13 @@ void SocketCommunicator::runCommunication(tcp::socket* socket)
 					auto partids = split(msg,' ');
 					std::cout << stdout_logger.str();
 					for(auto id : partids){
-						std::cout << ":" << id << "," << partsList[id];
+						std::cout << ":" << id << "," << _partManager->partsList[id];
 					}
-					partsList.clear();
+					stdout_logger.str("");
+					stdout_logger.clear();
+					//_partManager->partsList.clear();
 //					std::cerr << "Map cleared..." << std::endl;
 					std::cout << std::endl;
-//std::string str = stdout_logger.str();
-//str.erase(remove(str.begin(), str.end(), ' '), str.end());
-//stdout_logger.str("");
-//stdout_logger.clear();
-//std::cout << str << std::endl;
 				}
 				else if (type == "PARTSTATUS") {
 					std::cerr << "Post part id: " << id << std::endl;
@@ -193,7 +191,7 @@ void SocketCommunicator::runCommunication(tcp::socket* socket)
 					int value;
 					buffer >> value;   
 
-					partsList[id] = value;
+					_partManager->partsList[id] = value;
 					_partManager->postPartStatus(id, msg);
 					//stdout_logger << msg;
 				}
@@ -220,6 +218,9 @@ class AutoSaver {
 void SocketCommunicator::runServer() {
 	try {
 		_isRunning = true;
+                AutoSaver autosaver;
+                boost::thread* thread1 = new boost::thread(boost::bind(&AutoSaver::SaveThread,&autosaver,_partManager,_orderManager));
+                _socketCommunications.push_back(thread1);
 		boost::asio::io_service io_service;
 		tcp::acceptor acceptor(io_service, tcp::endpoint(boost::asio::ip::address::from_string(_serverip), _serverport));
 		while (!_stopServer)
@@ -228,9 +229,9 @@ void SocketCommunicator::runServer() {
 			acceptor.accept(*socket);
 			boost::thread* thread = new boost::thread(boost::bind(&SocketCommunicator::runCommunication, this, socket));
 			_socketCommunications.push_back(thread);
-			AutoSaver autosaver;
-			thread = new boost::thread(boost::bind(&AutoSaver::SaveThread,&autosaver,_partManager,_orderManager));
-			_socketCommunications.push_back(thread);
+			//AutoSaver autosaver;
+			//thread = new boost::thread(boost::bind(&AutoSaver::SaveThread,&autosaver,_partManager,_orderManager));
+			//_socketCommunications.push_back(thread);
 		}
 	}
 	catch (std::exception& e)

@@ -45,5 +45,6 @@ void PartManager::load(const std::string& filename)
 		return;
 	}
 	infile >> (*this);
+	infile.close();
 }
 

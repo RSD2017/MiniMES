@@ -33,6 +33,7 @@ class PartManager
 public:
 
 	PartManager();
+	std::map<int,int> partsList;
 
 	int getNextPart(const std::string& unitId);
 	void postPartStatus(int id, const std::string& msg);
@@ -55,31 +56,41 @@ public:
 	{
 		std::string token;
 		is >> token;
-        while (!is.eof()) {
-    		if (is.eof())
-    			return is;
-    		if (token != "Part") {
-    			 // throw std::exception((std::string("Expected token 'Part' but got: ") + token).c_str());
-    			 throw (std::string("Expected token 'Part' but got: ") + token).c_str();
-    		}
-    		Part part;
-    		is >> part.id;
-    		is >> token;
-    		while (token == "Status" && is.eof() == false) {
-    			std::string status;
+	        while (!is.eof()) {
+	    		if (is.eof())
+	    			return is;
+	    		if (token != "Part") {
+	    			 // throw std::exception((std::string("Expected token 'Part' but got: ") + token).c_str());
+	    			 throw (std::string("Expected token 'Part' but got: ") + token).c_str();
+	    		}
 
-    			char ch;
-    			do {
-    				is.read(&ch, 1);
-    				if (ch != '\n' && is.eof() == false)
-    					status.append(&ch, 1);
-    			} while (ch != '\n' && is.eof() == false);
+	    		Part part;
+	    		is >> part.id;
+	    		is >> token;
+			// convert msg to int
+	    		while (token == "Status" && is.eof() == false) {
+	    			std::string status;
+	
+	    			char ch;
+	    			do {
+	    				is.read(&ch, 1);
+					if(ch == '0'){
+						manager.partsList[part.id] = 0;
+					} else if(ch == '1'){
+						manager.partsList[part.id] = 1;
+					} else {
+						std::cerr << "\tunknown char: '" << ch << "'" << std::endl; 
+					}
 
-    			part.status.push_back(status);
-    			is >> token;
-    		}
-    		manager._parts[part.id] = part;
-        }
+	    				if (ch != '\n' && is.eof() == false)
+	    					status.append(&ch, 1);
+	    			} while (ch != '\n' && is.eof() == false);
+	
+	    			part.status.push_back(status);
+	    			is >> token;
+	    		}
+	    		manager._parts[part.id] = part;
+	        }
 		return is;
 	}
 
