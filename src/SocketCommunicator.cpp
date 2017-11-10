@@ -101,16 +101,19 @@ namespace {
 		buffer[2] = ((char*)(&val))[2];
 		buffer[1] = ((char*)(&val))[1];
 		buffer[0] = ((char*)(&val))[0];
-		socket->send(boost::asio::buffer(buffer, 4));
-		boost::this_thread::sleep(boost::posix_time::milliseconds(20));
+		socket->send(boost::asio::buffer(buffer, 10));
+		boost::this_thread::sleep(boost::posix_time::milliseconds(10));
 	}
 
 	void sendEscape(boost::asio::ip::tcp::socket* socket)
 	{
-		char buffer[1];
+		char buffer[4];
+		buffer[3] = '\n';
+		buffer[2] = '\n';
+		buffer[1] = '\n';
 		buffer[0] = '\n';
-		socket->send(boost::asio::buffer(buffer, 1));
-		boost::this_thread::sleep(boost::posix_time::milliseconds(20));
+		socket->send(boost::asio::buffer(buffer, 10));
+		boost::this_thread::sleep(boost::posix_time::milliseconds(10));
 	}
 
 
@@ -158,9 +161,9 @@ void SocketCommunicator::runCommunication(tcp::socket* socket)
 					std::cerr << "Get order id: " << std::endl;
 					std::pair<int, std::vector<int> > task = _orderManager->getNextOrder(unitId);
 					sendBinaryInt32(socket, task.first);
-			                boost::this_thread::sleep(boost::posix_time::milliseconds(20));
+			                boost::this_thread::sleep(boost::posix_time::milliseconds(10));
 					sendBinaryInt32(socket, task.second.size());
-			                boost::this_thread::sleep(boost::posix_time::milliseconds(20));
+			                boost::this_thread::sleep(boost::posix_time::milliseconds(10));
 					for (int i : task.second) {
 						sendBinaryInt32(socket, i);
 					}
