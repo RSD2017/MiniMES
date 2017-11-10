@@ -105,6 +105,14 @@ namespace {
 		boost::this_thread::sleep(boost::posix_time::milliseconds(20));
 	}
 
+	void sendEscape(boost::asio::ip::tcp::socket* socket)
+	{
+		char buffer[1];
+		buffer[0] = '\n';
+		socket->send(boost::asio::buffer(buffer, 1));
+		boost::this_thread::sleep(boost::posix_time::milliseconds(20));
+	}
+
 
 	void send(boost::asio::ip::tcp::socket* socket, int val) {
 		std::stringstream sstr;
@@ -156,6 +164,7 @@ void SocketCommunicator::runCommunication(tcp::socket* socket)
 					for (int i : task.second) {
 						sendBinaryInt32(socket, i);
 					}
+					sendEscape(socket);
 					// Save order id, to output
 					stdout_logger << task.first;
 				}
@@ -164,6 +173,7 @@ void SocketCommunicator::runCommunication(tcp::socket* socket)
 					int id = _partManager->getNextPart(unitId);
 //					stdout_logger << ":"  << id << ",";
 					sendBinaryInt32(socket, id);
+					sendEscape(socket);
 				}
 			}
 			else if (cmd == "POST") {
